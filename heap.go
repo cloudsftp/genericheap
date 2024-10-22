@@ -21,21 +21,23 @@ func NewHeap[T any](cmp ComparisonFunc[T]) Heap[T] {
 	}
 }
 
+// Push a new value to the heap
 func (h *Heap[T]) Push(value T) {
 	index := len(h.data)
 	h.data = append(h.data, value)
 
 	for index > 0 {
 		nextIndex := (index - 1) / 2
-		if h.cmp(h.data[nextIndex], h.data[index]) >= 0 {
+		if h.less(nextIndex, index) {
 			break
 		}
 
-		h.data[nextIndex], h.data[index] = h.data[index], h.data[nextIndex]
+		h.swap(index, nextIndex)
 		index = nextIndex
 	}
 }
 
+// Pop the minimal value from the heap
 func (h *Heap[T]) Pop() (*T, bool) {
 	if len(h.data) == 0 {
 		return nil, false
@@ -49,11 +51,34 @@ func (h *Heap[T]) Pop() (*T, bool) {
 
 	index := 0
 	for {
-		break
-		indexLeft := 2 * index
+		indexLeft := 2*index + 1
+		indexRight := indexLeft + 1
 
-		indexLeft = indexLeft
+		nextIndex := indexLeft
+		if h.less(indexRight, indexLeft) {
+			nextIndex = indexRight
+		}
+
+		if nextIndex >= len(h.data) ||
+			h.less(index, nextIndex) {
+			break
+		}
+
+		h.swap(index, nextIndex)
+		index = nextIndex
 	}
 
 	return &value, true
+}
+
+func (h *Heap[T]) swap(i, j int) {
+	h.data[i], h.data[j] = h.data[j], h.data[i]
+}
+
+func (h *Heap[T]) less(i, j int) bool {
+	if i >= len(h.data) || j >= len(h.data) {
+		return false
+	}
+
+	return h.cmp(h.data[i], h.data[j]) < 0
 }
